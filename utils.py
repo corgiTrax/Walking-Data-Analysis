@@ -1,16 +1,6 @@
 import tensorflow as tf, numpy as np, keras as K
 import shutil, os, time, re, sys
 
-def keras_model_serialization_bug_fix(): # stupid keras
-    # we need to call these functions so that a model can be correctly saved and loaded
-    from keras.utils.generic_utils import get_custom_objects
-    f=lambda obj_to_serialize: \
-        get_custom_objects().update({obj_to_serialize.__name__: obj_to_serialize})
-    f(loss_func); f(acc_); f(top2acc_)
-    f(loss_func_nonsparse)
-    f(acc_nonsparse_wrong)
-
-
 def save_GPU_mem_keras():
     # don't let tf eat all the memory on eldar-11
     config = tf.ConfigProto()

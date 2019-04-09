@@ -60,12 +60,19 @@ class Data:
 		self.trainLabel = to_categorical(self.trainLabel)
 		self.testLabel = to_categorical(self.testLabel)
 
+		# preprocessing
+		# Note: use mean/std from trainining data only if want to generalize
+		self.allData = np.concatenate((self.trainData, self.testData))
+		mean = np.mean(self.allData, axis=0)
+		std = np.std(self.allData, axis=0)
+		self.trainData = (self.trainData - mean) / std
+		self.testData = (self.testData - mean) / std
+
 	def train(self):
 		modelDir = 'Experiments/CNN'
 		dropout = 0.5
 		epoch = 30
 		U.save_GPU_mem_keras()
-		# U.keras_model_serialization_bug_fix()
 		expr = U.ExprCreaterAndResumer(modelDir, postfix="dr%s_imgOnly" % (str(dropout)))
 
 		inputs = L.Input(shape=inputShape)
@@ -75,29 +82,28 @@ class Data:
 		x = conv1(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
+		# Batch needs to be after relu, otherwise it won't train...
 
 		conv2 = L.Conv2D(32, (3,3), strides=1, padding='valid')
 		x = conv2(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 
-		# conv3 = L.Conv2D(32, (3,3), strides=1, padding='valid')
-		# x = conv3(x)
-		# x = L.Activation('relu')(x)
-		# x = L.BatchNormalization()(x)
-
-		x=L.Flatten()(x)
-
-		x=L.Dense(32, activation='relu')(x)
-		x=L.BatchNormalization()(x)
-		x=L.Dropout(dropout)(x)
+		conv3 = L.Conv2D(32, (3,3), strides=1, padding='valid')
+		x = conv3(x)
+		x = L.Activation('relu')(x)
+		x = L.BatchNormalization()(x)
+		x = L.GlobalAveragePooling2D()(x)
+		
+		#x = L.Flatten()(x)
+		x = L.Dense(32, activation='relu')(x)
+		x = L.Dropout(dropout)(x)
 		output=L.Dense(2, activation='softmax')(x)
-
 		model=Model(inputs=inputs, outputs=output)
 
 		opt = K.optimizers.Adadelta(lr=1.0, rho=0.95, epsilon=1e-08, decay=0.0)
 		#opt = K.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-		model.compile(optimizer= opt, loss='categorical_crossentropy', metrics=['accuracy'])
+		model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 		print(model.summary())
 		# snapshot code before training the model
@@ -106,15 +112,18 @@ class Data:
 		model.fit(self.trainData, self.trainLabel, validation_data=(self.testData, self.testLabel),
 			class_weight=self.class_weights, shuffle=True, batch_size=100, epochs=epoch, verbose=2,
 			callbacks=[K.callbacks.TensorBoard(log_dir=expr.dir),
-			K.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr = 0.00001),
+			K.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr = 0.00001),
 			U.PrintLrCallback()])
 
 		expr.save_weight_and_training_config_state(model)
+
+		score = model.evaluate(self.testData, self.testLabel, batch_size=100, 0)
+		expr.printdebug("eval score:" + str(score))
 
 	def test(self):
 		pass
 
 
-if __name__ == '__main__':
-	data = Data(gazeFile, nonGazeFile)
-	data.train()
+
+data = Data(gazeFile, nonGazeFile)
+data.train()
