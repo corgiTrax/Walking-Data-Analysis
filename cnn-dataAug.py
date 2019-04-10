@@ -93,15 +93,21 @@ class Data:
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		#x = L.MaxPooling2D(pool_size=(2,2))(x)
+
+		conv4 = L.Conv2D(64, (3,3), strides=1, padding='valid')
+		x = conv4(x)
+		x = L.Activation('relu')(x)
+		x = L.BatchNormalization()(x)
+		#x = L.MaxPooling2D(pool_size=(2,2))(x)
 		
 		x = L.Flatten()(x)
-		x = L.Dense(256, activation='relu')(x)
+		x = L.Dense(512, activation='relu')(x)
 		x = L.Dropout(dropout)(x)
 		output=L.Dense(1, activation='sigmoid')(x)
 		model=Model(inputs=inputs, outputs=output)
 
 		opt = K.optimizers.Adadelta(lr=1.0, rho=0.95, epsilon=1e-08, decay=0.0)
-		#opt = K.optimizers.Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+		#opt = K.optimizers.Adam(lr=0.1, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 		model.compile(optimizer=opt, loss='binary_crossentropy', metrics=[K.metrics.binary_accuracy])
 
 		print(model.summary())
@@ -116,20 +122,21 @@ class Data:
 		datagen.fit(self.trainData)
 
 		# fits the model on batches with real-time data augmentation:
-		# model.fit_generator(datagen.flow(self.trainData, self.trainLabel, batch_size=64), 
-		# 	validation_data=(self.testData, self.testLabel),
-		# 	samples_per_epoch=len(self.trainData), epochs=epoch, verbose=2)
+		model.fit_generator(datagen.flow(self.trainData, self.trainLabel, batch_size=64), 
+			validation_data=(self.testData, self.testLabel), class_weight=self.class_weights,
+			samples_per_epoch=len(self.trainData), epochs=epoch, verbose=2)
 
 		# here's a more "manual" example
-		for e in range(epoch):
-			print('Epoch', e)
-			batches = 0
-			for x_batch, y_batch in datagen.flow(self.trainData, self.trainLabel, batch_size=5000):
-				model.fit(x_batch, y_batch, validation_data=(self.testData, self.testLabel), shuffle=True, verbose=2)
-				batches += 1
-				print("Batch", batches)
-				if batches >= len(self.trainData) / 5000:
-					break
+		# for e in range(epoch):
+		# 	print('Epoch', e)
+		# 	batches = 0
+		# 	for x_batch, y_batch in datagen.flow(self.trainData, self.trainLabel, batch_size=5000):
+		# 		model.fit(x_batch, y_batch, validation_data=(self.testData, self.testLabel), 
+		# 			class_weight=self.class_weights, shuffle=True, verbose=2)
+		# 		batches += 1
+		# 		print("Batch", batches)
+		# 		if batches >= len(self.trainData) / 5000:
+					# break
 
 		# model.fit(self.trainData, self.trainLabel, validation_data=(self.testData, self.testLabel),
 		# 	class_weight=self.class_weights, shuffle=True, batch_size=100, epochs=epoch, verbose=2,
