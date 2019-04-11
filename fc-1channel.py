@@ -26,8 +26,9 @@ gazeMatField, nonGazeMatField = "magStack","magStack_non"
 # note cannot shuffle data in this dataset before splitting
 trainRatio = 0.85 
 imgRow, imgCol = 79, 79
-inputShape = (imgRow, imgCol, 1)
-modelDir = 'Experiments/cnn-1ch'
+dim = imgRow * imgCol
+inputShape = (dim, )
+modelDir = 'Experiments/fc-1ch'
 dropout = 0.5
 epoch = 30
 dataAug = False
@@ -59,8 +60,8 @@ class Data:
 		numNonGaze = len(nonGazeData)
 		print("%s, %s samples from gaze/nongaze files" % (numGaze, numNonGaze))
 
-		gazeData = gazeData.reshape(numGaze, imgRow, imgCol, 1)
-		nonGazeData = nonGazeData.reshape(numNonGaze, imgRow, imgCol, 1)
+		#gazeData = gazeData.reshape(numGaze, dim, 1)
+		#nonGazeData = nonGazeData.reshape(numNonGaze, dim, 1)
 
 		# split data 
 		numGazeTrain, numNonGazeTrain = int(numGaze * trainRatio), int(numNonGaze * trainRatio)
@@ -95,30 +96,12 @@ class Data:
 		inputs = L.Input(shape=inputShape)
 		x = inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv1 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 3, padding='valid')
-		x = conv1(x)
-		x = L.Activation('relu')(x)
-		x = L.BatchNormalization()(x)
-		# Batch needs to be after relu, otherwise it won't train...
-		#x = L.MaxPooling2D(pool_size=(2,2))(x)
-
-		conv2 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 3, padding='valid')
-		x = conv2(x)
-		x = L.Activation('relu')(x)
-		x = L.BatchNormalization()(x)
-		#x = L.MaxPooling2D(pool_size=(2,2))(x)
-
-		conv3 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 3, padding='valid')
-		x = conv3(x)
-		x = L.Activation('relu')(x)
-		x = L.BatchNormalization()(x)
-		#x = L.MaxPooling2D(pool_size=(2,2))(x)
-		
-		x = L.Flatten()(x)
-		x = L.Dense(64, activation='relu')(x)
+		x = L.Dense(1024, activation='relu')(x)
 		x = L.Dropout(dropout)(x)
-		output=L.Dense(1, activation='sigmoid')(x)
-		model=Model(inputs=inputs, outputs=output)
+		x = L.Dense(512, activation='relu')(x)
+		x = L.Dropout(dropout)(x)
+		output = L.Dense(1, activation='sigmoid')(x)
+		model = Model(inputs=inputs, outputs=output)
 
 		opt = K.optimizers.Adadelta(lr=1.0, rho=0.95, epsilon=1e-08, decay=0.0)
 		#opt = K.optimizers.Adam(lr=0.1, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)

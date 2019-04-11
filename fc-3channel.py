@@ -15,21 +15,22 @@ from sklearn.utils import class_weight
 import utils as U
 
 # gaze and non gaze file names
-dirc = "data/flow-allFixFrames/"
-# gazeFiles = ["79_gaze.mat"]
-# nonGazeFiles =  ["79_nonGaze.mat"]
-gazeFiles = ["1_79mag_fix_patch_stack.mat", "2_79mag_fix_patch_stack.mat", "3_79mag_fix_patch_stack.mat"]
-nonGazeFiles =  ["1_79mag_non_fix_patch_stack.mat", "2_79mag_non_fix_patch_stack.mat", "3_79mag_non_fix_patch_stack.mat"]
+dirc = "data/color-allFixFrames/"
+# gazeFiles = ["1_color_79_fix_patch_stack.mat", "2_color_79_fix_patch_stack.mat", "3_color_79_fix_patch_stack.mat"]
+# nonGazeFiles =  ["1_color_79_non_fix_patch_stack.mat", "2_color_79_non_fix_patch_stack.mat", "3_color_79_non_fix_patch_stack.mat"]
+gazeFiles = ["1_79_fix_patch_stack.mat", "2_79_fix_patch_stack.mat", "3_79_fix_patch_stack.mat"]
+nonGazeFiles =  ["1_79_non_fix_patch_stack.mat", "2_79_non_fix_patch_stack.mat", "3_79_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 #gazeMatField, nonGazeMatField = "patch_Stack","patch_Stack_non"
-gazeMatField, nonGazeMatField = "magStack","magStack_non"
+gazeMatField, nonGazeMatField = "patchStack","patchStack_non"
 # note cannot shuffle data in this dataset before splitting
-trainRatio = 0.85 
+trainRatio = 0.85 # 3611 gaze; 21474 nonGaze
 imgRow, imgCol = 79, 79
-inputShape = (imgRow, imgCol, 1)
-modelDir = 'Experiments/cnn-1ch'
+dim = imgRow * imgCol * 3
+inputShape = (dim,)
+modelDir = 'Experiments/fc-3ch'
 dropout = 0.5
-epoch = 30
+epoch = 50
 dataAug = False
 
 class Data:
@@ -52,15 +53,13 @@ class Data:
 			else:
 				nonGazeData = np.concatenate((nonGazeData, sio.loadmat(nonGazeFile)[nonGazeMatField]))
 		
-		# do not divide optical flow data by 255!
-		#gazeData = gazeData / 255.0
-		#nonGazeData = nonGazeData /  255.0
+		gazeData = gazeData / 255.0
+		nonGazeData = nonGazeData /  255.0
 		numGaze = len(gazeData)
 		numNonGaze = len(nonGazeData)
 		print("%s, %s samples from gaze/nongaze files" % (numGaze, numNonGaze))
 
-		gazeData = gazeData.reshape(numGaze, imgRow, imgCol, 1)
-		nonGazeData = nonGazeData.reshape(numNonGaze, imgRow, imgCol, 1)
+		# The data is organized in this way: pixel1Rchannel, pixel2Rchannel, ...., pixel1Gchannel...
 
 		# split data 
 		numGazeTrain, numNonGazeTrain = int(numGaze * trainRatio), int(numNonGaze * trainRatio)
@@ -95,27 +94,9 @@ class Data:
 		inputs = L.Input(shape=inputShape)
 		x = inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv1 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 3, padding='valid')
-		x = conv1(x)
-		x = L.Activation('relu')(x)
-		x = L.BatchNormalization()(x)
-		# Batch needs to be after relu, otherwise it won't train...
-		#x = L.MaxPooling2D(pool_size=(2,2))(x)
-
-		conv2 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 3, padding='valid')
-		x = conv2(x)
-		x = L.Activation('relu')(x)
-		x = L.BatchNormalization()(x)
-		#x = L.MaxPooling2D(pool_size=(2,2))(x)
-
-		conv3 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 3, padding='valid')
-		x = conv3(x)
-		x = L.Activation('relu')(x)
-		x = L.BatchNormalization()(x)
-		#x = L.MaxPooling2D(pool_size=(2,2))(x)
-		
-		x = L.Flatten()(x)
-		x = L.Dense(64, activation='relu')(x)
+		x = L.Dense(1024, activation='relu')(x)
+		x = L.Dropout(dropout)(x)
+		x = L.Dense(512, activation='relu')(x)
 		x = L.Dropout(dropout)(x)
 		output=L.Dense(1, activation='sigmoid')(x)
 		model=Model(inputs=inputs, outputs=output)
@@ -136,21 +117,21 @@ class Data:
 			datagen.fit(self.trainData)
 
 			# fits the model on batches with real-time data augmentation:
-			model.fit_generator(datagen.flow(self.trainData, self.trainLabel, batch_size=64), 
-				validation_data=(self.testData, self.testLabel), class_weight=self.class_weights,
-				samples_per_epoch=len(self.trainData), epochs=epoch, verbose=2)
+			# model.fit_generator(datagen.flow(self.trainData, self.trainLabel, batch_size=64), 
+			# 	validation_data=(self.testData, self.testLabel), class_weight=self.class_weights,
+			# 	samples_per_epoch=len(self.trainData), epochs=epoch, verbose=2)
 
 			# here's a more "manual" example
-			# for e in range(epoch):
-			# 	print('Epoch', e)
-			# 	batches = 0
-			# 	for x_batch, y_batch in datagen.flow(self.trainData, self.trainLabel, batch_size=5000):
-			# 		model.fit(x_batch, y_batch, validation_data=(self.testData, self.testLabel), 
-			# 			class_weight=self.class_weights, shuffle=True, verbose=2)
-			# 		batches += 1
-			# 		print("Batch", batches)
-			# 		if batches >= len(self.trainData) / 5000:
-						# break
+			for e in range(epoch):
+				print('Epoch', e)
+				batches = 0
+				for x_batch, y_batch in datagen.flow(self.trainData, self.trainLabel, batch_size=5000):
+					model.fit(x_batch, y_batch, validation_data=(self.testData, self.testLabel), 
+						class_weight=self.class_weights, shuffle=True, verbose=2)
+					batches += 1
+					print("Batch", batches)
+					if batches >= len(self.trainData) / 5000:
+						break
 		else:
 			# model.fit(self.trainData, self.trainLabel, validation_data=(self.testData, self.testLabel),
 			# 	class_weight=self.class_weights, shuffle=True, batch_size=100, epochs=epoch, verbose=2,
@@ -160,7 +141,7 @@ class Data:
 			model.fit(self.trainData, self.trainLabel, validation_data=(self.testData, self.testLabel),
 				shuffle=True, batch_size=100, epochs=epoch, verbose=2,
 				callbacks=[K.callbacks.TensorBoard(log_dir=expr.dir),
-				K.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=4, min_lr = 0.00001),
+				K.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr = 0.00001),
 				U.PrintLrCallback()])
 
 		expr.save_weight_and_training_config_state(model)

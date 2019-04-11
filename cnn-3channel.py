@@ -27,6 +27,10 @@ gazeMatField, nonGazeMatField = "patchStack","patchStack_non"
 trainRatio = 0.85 # 3611 gaze; 21474 nonGaze
 imgRow, imgCol = 79, 79
 inputShape = (imgRow, imgCol, 3)
+modelDir = 'Experiments/cnn-3ch'
+dropout = 0.5
+epoch = 50
+dataAug = False
 
 class Data:
 	def __init__(self, gazeFiles, nonGazeFiles):
@@ -91,31 +95,26 @@ class Data:
 		self.testData = (self.testData - mean) / std
 
 	def train(self):
-		modelDir = 'Experiments/CNN'
-		dropout = 0.5
-		epoch = 50
-		dataAug = False
-
 		U.save_GPU_mem_keras()
 		expr = U.ExprCreaterAndResumer(modelDir, postfix="dr%s_imgOnly" % (str(dropout)))
 
 		inputs = L.Input(shape=inputShape)
 		x = inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv1 = L.Conv2D(64, (3,3), strides=1, padding='valid')
+		conv1 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 3, padding='valid')
 		x = conv1(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		# Batch needs to be after relu, otherwise it won't train...
 		#x = L.MaxPooling2D(pool_size=(2,2))(x)
 
-		conv2 = L.Conv2D(64, (3,3), strides=1, padding='valid')
+		conv2 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 3, padding='valid')
 		x = conv2(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		#x = L.MaxPooling2D(pool_size=(2,2))(x)
 
-		conv3 = L.Conv2D(64, (3,3), strides=1, padding='valid')
+		conv3 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 3, padding='valid')
 		x = conv3(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
