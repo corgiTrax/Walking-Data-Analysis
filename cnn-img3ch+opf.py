@@ -15,25 +15,24 @@ from sklearn.utils import class_weight
 import utils as U
 
 # gaze and non gaze file names
-dirc = "data/color-allFixFrames/"
-gazeFiles = ["1_79_fix_patch_stack.mat", "2_79_fix_patch_stack.mat", "3_79_fix_patch_stack.mat"]
-nonGazeFiles =  ["1_79_non_fix_patch_stack.mat", "2_79_non_fix_patch_stack.mat", "3_79_non_fix_patch_stack.mat"]
+dirc = "data/32/color-allFixFrames/"
+gazeFiles = ["1_fix_patch_stack.mat", "2_fix_patch_stack.mat", "3_fix_patch_stack.mat"]
+nonGazeFiles =  ["1_non_fix_patch_stack.mat", "2_non_fix_patch_stack.mat", "3_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 gazeMatField, nonGazeMatField = "patchStack","patchStack_non"
 
-dircOF = "data/flow-allFixFrames/"
-gazeFilesOF = ["1_79mag_fix_patch_stack.mat", "2_79mag_fix_patch_stack.mat", "3_79mag_fix_patch_stack.mat"]
-nonGazeFilesOF =  ["1_79mag_non_fix_patch_stack.mat", "2_79mag_non_fix_patch_stack.mat", "3_79mag_non_fix_patch_stack.mat"]
+dircOF = "data/32/flow-allFixFrames/"
+gazeFilesOF = ["1_mag_fix_patch_stack.mat", "2_mag_fix_patch_stack.mat", "3_mag_fix_patch_stack.mat"]
+nonGazeFilesOF =  ["1_mag_non_fix_patch_stack.mat", "2_mag_non_fix_patch_stack.mat", "3_mag_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 gazeMatFieldOF, nonGazeMatFieldOF = "magStack","magStack_non"
 
 # note cannot shuffle data in this dataset before splitting
 trainRatio = 0.85 # 3611 gaze; 21474 nonGaze
-imgRow, imgCol = 79, 79
+imgRow, imgCol = 32, 32
 inputShape = (imgRow, imgCol, 3)
 inputShapeOF = (imgRow, imgCol, 1)
-
-modelDir = 'Experiments/cnn-img+of'
+modelDir = 'Experiments/' + str(imgRow) + '/cnn-img+of'
 dropout = 0.5
 epoch = 50
 dataAug = False
@@ -133,18 +132,18 @@ class Data:
 		x_inputs = L.Input(shape=inputShape)
 		x = x_inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv11 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 6, padding='valid')
+		conv11 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv11(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		# Batch needs to be after relu, otherwise it won't train...
 
-		conv12 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 6, padding='valid')
+		conv12 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv12(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 
-		conv13 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 6, padding='valid')
+		conv13 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv13(x)
 		x = L.Activation('relu')(x)
 		x_output = L.BatchNormalization()(x)
@@ -153,17 +152,17 @@ class Data:
 		z_inputs = L.Input(shape=inputShapeOF)
 		z = z_inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv21 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 6, padding='valid')
+		conv21 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		z = conv21(z)
 		z = L.Activation('relu')(z)
 		z = L.BatchNormalization()(z)
 
-		conv22 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 6, padding='valid')
+		conv22 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		z = conv22(z)
 		z = L.Activation('relu')(z)
 		z = L.BatchNormalization()(z)
 
-		conv23 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 6, padding='valid')
+		conv23 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		z = conv23(z)
 		z = L.Activation('relu')(z)
 		z_output = L.BatchNormalization()(z)

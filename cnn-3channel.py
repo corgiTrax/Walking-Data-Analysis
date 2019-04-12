@@ -15,19 +15,19 @@ from sklearn.utils import class_weight
 import utils as U
 
 # gaze and non gaze file names
-dirc = "data/color-allFixFrames/"
+dirc = "data/32/color-allFixFrames/"
 # gazeFiles = ["1_color_79_fix_patch_stack.mat", "2_color_79_fix_patch_stack.mat", "3_color_79_fix_patch_stack.mat"]
 # nonGazeFiles =  ["1_color_79_non_fix_patch_stack.mat", "2_color_79_non_fix_patch_stack.mat", "3_color_79_non_fix_patch_stack.mat"]
-gazeFiles = ["1_79_fix_patch_stack.mat", "2_79_fix_patch_stack.mat", "3_79_fix_patch_stack.mat"]
-nonGazeFiles =  ["1_79_non_fix_patch_stack.mat", "2_79_non_fix_patch_stack.mat", "3_79_non_fix_patch_stack.mat"]
+gazeFiles = ["1_fix_patch_stack.mat", "2_fix_patch_stack.mat", "3_fix_patch_stack.mat"]
+nonGazeFiles =  ["1_non_fix_patch_stack.mat", "2_non_fix_patch_stack.mat", "3_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 #gazeMatField, nonGazeMatField = "patch_Stack","patch_Stack_non"
 gazeMatField, nonGazeMatField = "patchStack","patchStack_non"
 # note cannot shuffle data in this dataset before splitting
 trainRatio = 0.85 # 3611 gaze; 21474 nonGaze
-imgRow, imgCol = 79, 79
+imgRow, imgCol = 32, 32
 inputShape = (imgRow, imgCol, 3)
-modelDir = 'Experiments/cnn-3ch'
+modelDir = 'Experiments/' + str(imgRow) + '/cnn-3ch'
 dropout = 0.5
 epoch = 50
 dataAug = False
@@ -101,20 +101,20 @@ class Data:
 		inputs = L.Input(shape=inputShape)
 		x = inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv1 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 3, padding='valid')
+		conv1 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv1(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		# Batch needs to be after relu, otherwise it won't train...
 		#x = L.MaxPooling2D(pool_size=(2,2))(x)
 
-		conv2 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 3, padding='valid')
+		conv2 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv2(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		#x = L.MaxPooling2D(pool_size=(2,2))(x)
 
-		conv3 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 3, padding='valid')
+		conv3 = L.Conv2D(64, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv3(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)

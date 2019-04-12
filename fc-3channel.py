@@ -15,20 +15,20 @@ from sklearn.utils import class_weight
 import utils as U
 
 # gaze and non gaze file names
-dirc = "data/color-allFixFrames/"
+dirc = "data/32/color-allFixFrames/"
 # gazeFiles = ["1_color_79_fix_patch_stack.mat", "2_color_79_fix_patch_stack.mat", "3_color_79_fix_patch_stack.mat"]
 # nonGazeFiles =  ["1_color_79_non_fix_patch_stack.mat", "2_color_79_non_fix_patch_stack.mat", "3_color_79_non_fix_patch_stack.mat"]
-gazeFiles = ["1_79_fix_patch_stack.mat", "2_79_fix_patch_stack.mat", "3_79_fix_patch_stack.mat"]
-nonGazeFiles =  ["1_79_non_fix_patch_stack.mat", "2_79_non_fix_patch_stack.mat", "3_79_non_fix_patch_stack.mat"]
+gazeFiles = ["1_fix_patch_stack.mat", "2_fix_patch_stack.mat", "3_fix_patch_stack.mat"]
+nonGazeFiles =  ["1_non_fix_patch_stack.mat", "2_non_fix_patch_stack.mat", "3_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 #gazeMatField, nonGazeMatField = "patch_Stack","patch_Stack_non"
 gazeMatField, nonGazeMatField = "patchStack","patchStack_non"
 # note cannot shuffle data in this dataset before splitting
 trainRatio = 0.85 # 3611 gaze; 21474 nonGaze
-imgRow, imgCol = 79, 79
+imgRow, imgCol = 32, 32
 dim = imgRow * imgCol * 3
 inputShape = (dim,)
-modelDir = 'Experiments/fc-3ch'
+modelDir = 'Experiments/' + str(imgRow) + '/fc-3ch'
 dropout = 0.5
 epoch = 50
 dataAug = False

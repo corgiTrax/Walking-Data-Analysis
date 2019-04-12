@@ -15,20 +15,20 @@ from sklearn.utils import class_weight
 import utils as U
 
 # gaze and non gaze file names
-dirc = "data/flow-allFixFrames/"
+dirc = "data/32/flow-allFixFrames/"
 # gazeFiles = ["79_gaze.mat"]
 # nonGazeFiles =  ["79_nonGaze.mat"]
-gazeFiles = ["1_79mag_fix_patch_stack.mat", "2_79mag_fix_patch_stack.mat", "3_79mag_fix_patch_stack.mat"]
-nonGazeFiles =  ["1_79mag_non_fix_patch_stack.mat", "2_79mag_non_fix_patch_stack.mat", "3_79mag_non_fix_patch_stack.mat"]
+gazeFiles = ["1_mag_fix_patch_stack.mat", "2_mag_fix_patch_stack.mat", "3_mag_fix_patch_stack.mat"]
+nonGazeFiles =  ["1_mag_non_fix_patch_stack.mat", "2_mag_non_fix_patch_stack.mat", "3_mag_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 #gazeMatField, nonGazeMatField = "patch_Stack","patch_Stack_non"
 gazeMatField, nonGazeMatField = "magStack","magStack_non"
 # note cannot shuffle data in this dataset before splitting
 trainRatio = 0.85 
-imgRow, imgCol = 79, 79
+imgRow, imgCol = 32, 32
 dim = imgRow * imgCol
 inputShape = (dim, )
-modelDir = 'Experiments/fc-1ch'
+modelDir = 'Experiments/' + str(imgRow) + '/fc-1ch'
 dropout = 0.5
 epoch = 30
 dataAug = False

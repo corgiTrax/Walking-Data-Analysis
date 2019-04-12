@@ -7,10 +7,12 @@ Analyze outdoor walking data
 - [x] Get gaze vs. nongaze data
 - [x] Basic CNN classification model
 - [x] Data augmentation --  preprocess, reduce overfitting
-- [ ] Load pre-trained network?
 - [x] Colored data
-- [ ] Smaller patches (how small?)
-- [ ] GlobalAveragePooling2D?
 - [x] Max pooling?
 - [x] Optical flow only
-- [ ] Colored data + optical flow
+- [x] Colored data + optical flow
+- [ ] 32x32 data
+- [ ] Convolution dilation rate
+- [x] Fully connected network
+- [ ] GlobalAveragePooling2D?
+- [ ] Load pre-trained network?
