@@ -11,8 +11,8 @@ Analyze outdoor walking data
 - [x] Max pooling?
 - [x] Optical flow only
 - [x] Colored data + optical flow
-- [ ] 32x32 data
-- [ ] Convolution dilation rate
+- [x] 32x32 data
+- [x] Convolution dilation rate
 - [ ] Fourier transform
 - [x] Fully connected network
 - [ ] GlobalAveragePooling2D?
