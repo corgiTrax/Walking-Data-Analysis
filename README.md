@@ -13,6 +13,8 @@ Analyze outdoor walking data
 - [x] Colored data + optical flow
 - [ ] 32x32 data
 - [ ] Convolution dilation rate
+- [ ] Fourier transform
 - [x] Fully connected network
 - [ ] GlobalAveragePooling2D?
 - [ ] Load pre-trained network?
+- [ ] Body joint prediction

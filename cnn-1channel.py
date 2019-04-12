@@ -95,20 +95,20 @@ class Data:
 		inputs = L.Input(shape=inputShape)
 		x = inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv1 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv1 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 1, padding='valid')
 		x = conv1(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		# Batch needs to be after relu, otherwise it won't train...
 		#x = L.MaxPooling2D(pool_size=(2,2))(x)
 
-		conv2 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv2 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 1, padding='valid')
 		x = conv2(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		#x = L.MaxPooling2D(pool_size=(2,2))(x)
 
-		conv3 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv3 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 1, padding='valid')
 		x = conv3(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)

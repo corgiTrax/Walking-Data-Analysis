@@ -132,18 +132,18 @@ class Data:
 		x_inputs = L.Input(shape=inputShape)
 		x = x_inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv11 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv11 = L.Conv2D(16, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv11(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 		# Batch needs to be after relu, otherwise it won't train...
 
-		conv12 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv12 = L.Conv2D(16, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv12(x)
 		x = L.Activation('relu')(x)
 		x = L.BatchNormalization()(x)
 
-		conv13 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv13 = L.Conv2D(16, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		x = conv13(x)
 		x = L.Activation('relu')(x)
 		x_output = L.BatchNormalization()(x)
@@ -152,24 +152,24 @@ class Data:
 		z_inputs = L.Input(shape=inputShapeOF)
 		z = z_inputs # inputs is used by the line "Model(inputs, ... )" below
 
-		conv21 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv21 = L.Conv2D(16, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		z = conv21(z)
 		z = L.Activation('relu')(z)
 		z = L.BatchNormalization()(z)
 
-		conv22 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv22 = L.Conv2D(16, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		z = conv22(z)
 		z = L.Activation('relu')(z)
 		z = L.BatchNormalization()(z)
 
-		conv23 = L.Conv2D(32, (3,3), strides=1, dilation_rate = 2, padding='valid')
+		conv23 = L.Conv2D(16, (3,3), strides=1, dilation_rate = 2, padding='valid')
 		z = conv23(z)
 		z = L.Activation('relu')(z)
 		z_output = L.BatchNormalization()(z)
 		
 		joint = L.Average()([x_output, z_output])
 		joint = L.Flatten()(joint)
-		joint = L.Dense(64, activation='relu')(joint)
+		joint = L.Dense(32, activation='relu')(joint)
 		joint = L.Dropout(dropout)(joint)
 		output=L.Dense(1, activation='sigmoid')(joint)
 
