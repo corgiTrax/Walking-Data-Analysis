@@ -3,7 +3,8 @@ Analyze outdoor walking data
 
 - [x] Setup experiment recording scripts
 - [x] Condor scripts
-# Gaze prediction task 1: classification
+
+# Gaze prediction task 1: classification of image patches
 - [x] Get gaze vs. nongaze data
 - [x] Basic CNN classification model
 - [x] Data augmentation --  preprocess, reduce overfitting
@@ -17,4 +18,11 @@ Analyze outdoor walking data
 - [x] Fully connected network
 - [ ] GlobalAveragePooling2D?
 - [ ] Load pre-trained network?
-- [ ] Body joint prediction
+
+# Gaze prediction task2: body-joint model
+- [x] Body joint prediction - regression model
+- [ ] Standardrization of features
+- [ ] Regression model interpretation: coefficients 
+- [ ] MLP model
+
+# Gaze prediction task3: joint image-body model
