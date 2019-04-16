@@ -6,7 +6,7 @@ import h5py
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn import linear_model
-
+import statsmodels.api as sm
 
 dirc = 'data/1condition/'
 
@@ -25,7 +25,17 @@ gaitKey = 'gaitCyclePctAll'
 footholdKey = 'feetLocs'
 # fields in subjFile
 heightKey, legKey = 'subjHeight', 'legLength'
+# only use first 25 joints, since the last severals are heads and unknowns
+numJoint = 25
 
+variableInfo = "x1-75: joint x,y,z positions (25 joints)\n\
+x76-150: joint x,y,z velocities\n\
+x151-153: com x,y,z positions\n\
+x154-156: com x,y,z velocities\n\
+x157: gait percentage\n\
+x158-172: foothold\n\
+x173: height\n\
+x174: leg length"
 
 def calc_adj_r2(r2, n, k):
 	# r2: r2 returned by regressor; n: sample size; k: # of features
@@ -38,19 +48,30 @@ class Data:
 
 		print("Loading data from files: %s" % (bodyFile))
 		bodyData = h5py.File(bodyFile, 'r')
+		
+		print(variableInfo)
+
+		# printing string from hdf5 file is tricky...
+		self.jointNames = np.array(bodyData[jointNameKey])
+		print("Joint names:")
+		for i in range(0, numJoint):
+			st = self.jointNames[i][0]
+			obj = bodyData[st]
+			str1 = ''.join(chr(i) for i in obj[:])
+			print("x%s:%s" % (i+1,str1)) # starts with x1 in statsmodel
 
 		# dependent variable: 2(x,y) x #samples, there are NaNs
 		self.gaze2Data = np.array(bodyData[gaze2Key])
 		self.gaze2Data = np.swapaxes(self.gaze2Data, 0, 1)
 
-		# independent variable 3(x,y,z) x #joints x #samples; only use 0-24
-		jointData = np.array(bodyData[jointKey])[:,0:24,:]
+		# independent variable 3(x,y,z) x #joints x #samples; only use 0-numJoint
+		jointData = np.array(bodyData[jointKey])[:,0:numJoint,:]
 		jointData = np.swapaxes(jointData, 0, 2)
-		jointData = np.reshape(jointData, (len(jointData), 3*24))
+		jointData = np.reshape(jointData, (len(jointData), 3*numJoint))
 
-		jointVelData = np.array(bodyData[jointVelKey])[:,0:24,:]
+		jointVelData = np.array(bodyData[jointVelKey])[:,0:numJoint,:]
 		jointVelData = np.swapaxes(jointVelData, 0, 2)
-		jointVelData = np.reshape(jointVelData, (len(jointVelData), 3*24))
+		jointVelData = np.reshape(jointVelData, (len(jointVelData), 3*numJoint))
 
 		comData = np.array(bodyData[comKey])
 		comData = np.swapaxes(comData, 0, 1)
@@ -79,7 +100,7 @@ class Data:
 		print("Shape of IV matrix: ", self.allIVData.shape)
 
 
-	def train(self, method):
+	def regress_sklearn(self, method):
 		#self.allIndVars= StandardScaler().fit_transform(self.allIndVars)
 
 		if method == 'sk_ole':
@@ -94,18 +115,40 @@ class Data:
 		else:
 			print("No regression method specified; choose from ['ole'|'l1'|'l2']")
 		
-		if method.startswith('sk_'):
-			print("Predicting gazeVec...")
-			reg.fit(self.allIVData, self.gaze1Data)
-			r2 = reg.score(self.allIVData, self.gaze1Data)
-			adjR2 = calc_adj_r2(r2, self.allIVData.shape[0], self.allIVData.shape[1])
-			print("r2, adjusted r2: %s, %s" % (r2, adjR2))
+		print("Predicting gazeVec...")
+		reg.fit(self.allIVData, self.gaze1Data)
+		r2 = reg.score(self.allIVData, self.gaze1Data)
+		adjR2 = calc_adj_r2(r2, self.allIVData.shape[0], self.allIVData.shape[1])
+		print("r2, adjusted r2: %s, %s" % (r2, adjR2))
 
-			print("Predicting gazeXZAll...")
-			reg.fit(self.allIVData, self.gaze2Data)
-			r2 = reg.score(self.allIVData, self.gaze2Data)
-			adjR2 = calc_adj_r2(r2, self.allIVData.shape[0], self.allIVData.shape[1])
-			print("r2, adjusted r2: %s, %s" % (r2, adjR2))
+		print("Predicting gazeXZAll...")
+		reg.fit(self.allIVData, self.gaze2Data)
+		r2 = reg.score(self.allIVData, self.gaze2Data)
+		adjR2 = calc_adj_r2(r2, self.allIVData.shape[0], self.allIVData.shape[1])
+		print("r2, adjusted r2: %s, %s" % (r2, adjR2))
+
+
+	def regress_statsmodel(self):
+		X = sm.add_constant(self.allIVData)
+		print("Regression result for 1st dimension")
+		Y = self.gaze1Data[:,0]
+		model = sm.OLS(Y,X)
+		results = model.fit()
+		print(results.summary())
+		print('*' * 120)
+
+		print("Regression result for 2nd dimension")
+		Y = self.gaze1Data[:,1]
+		model = sm.OLS(Y,X)
+		results = model.fit()
+		print(results.summary())
+		print('*' * 120)
+
+		print("Regression result for 3rd dimension")
+		Y = self.gaze1Data[:,2]
+		model = sm.OLS(Y,X)
+		results = model.fit()
+		print(results.summary())
 
 data = Data()
-data.train('sk_ole')
+data.regress_statsmodel()
