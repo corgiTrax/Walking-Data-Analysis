@@ -20,9 +20,8 @@ Analyze outdoor walking data
 - [ ] Load pre-trained network?
 
 # Gaze prediction task2: body-joint model
-- [x] Body joint prediction - regression model
-- [ ] Standardrization of features
-- [ ] Regression model interpretation: coefficients 
+- [x] Body joint prediction: regression model in sklearn
+- [ ] Regression model interpretation: regression model in statsmodel
 - [ ] MLP model
 
 # Gaze prediction task3: joint image-body model
