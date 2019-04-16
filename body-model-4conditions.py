@@ -52,28 +52,29 @@ class Data:
 		finiteMask = np.isfinite(gazeData)[:,0]
 		self.gazeData = gazeData[finiteMask]
 		
-		self.allIndVars = np.concatenate((jointData, jointVelData, comData, comVelData, gaitData, heightData),axis=1)
-		self.allIndVars = self.allIndVars[finiteMask]
-		print(self.allIndVars.shape)
+		self.allIVData = np.concatenate((jointData, jointVelData, comData, comVelData, gaitData, heightData),axis=1)
+		self.allIVData = self.allIVData[finiteMask]
+		print(self.allIVData.shape)
 
 
 	def train(self, method):
 		#self.allIndVars= StandardScaler().fit_transform(self.allIndVars)
 
-		if method == 'ole':
+		if method == 'sk_ole':
 			# ordinary least square
 			reg = LinearRegression(normalize=True)
-		elif method == 'l2':
+		elif method == 'sk_l2':
 			# ridge
 			reg = linear_model.Ridge(alpha=0.1,normalize=True)
-		elif method == 'l1':
+		elif method == 'sk_l1':
 			# lasso
 			reg = linear_model.Lasso(alpha=0.05,normalize=True)
 		else:
 			print("No regression method specified; choose from ['ole'|'l1'|'l2']")
 		
-		reg.fit(self.allIndVars, self.gazeData)
-		print(reg.score(self.allIndVars, self.gazeData))
+		if method.startwith('sk_'):
+			reg.fit(self.allIVData, self.gazeData)
+			print(reg.score(self.allIVData, self.gazeData))
 
 data = Data()
-data.train('l2')
+data.train('sk_ole')
