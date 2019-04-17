@@ -28,14 +28,7 @@ heightKey, legKey = 'subjHeight', 'legLength'
 # only use first 25 joints, since the last severals are heads and unknowns
 numJoint = 25
 
-variableInfo = "x1-75: joint x,y,z positions (25 joints)\n\
-x76-150: joint x,y,z velocities\n\
-x151-153: com x,y,z positions\n\
-x154-156: com x,y,z velocities\n\
-x157: gait percentage\n\
-x158-172: foothold\n\
-x173: height\n\
-x174: leg length"
+
 
 def calc_adj_r2(r2, n, k):
 	# r2: r2 returned by regressor; n: sample size; k: # of features
@@ -49,16 +42,15 @@ class Data:
 		print("Loading data from files: %s" % (bodyFile))
 		bodyData = h5py.File(bodyFile, 'r')
 		
-		print(variableInfo)
-
 		# printing string from hdf5 file is tricky...
-		self.jointNames = np.array(bodyData[jointNameKey])
+		jointNamesHDF5 = np.array(bodyData[jointNameKey])
+		self.jointNames = []
 		print("Joint names:")
 		for i in range(0, numJoint):
-			st = self.jointNames[i][0]
+			st = jointNamesHDF5[i][0]
 			obj = bodyData[st]
-			str1 = ''.join(chr(i) for i in obj[:])
-			print("x%s:%s" % (i+1,str1)) # starts with x1 in statsmodel
+			jointName = ''.join(chr(i) for i in obj[:])
+			self.jointNames.append(jointName) # starts with x1 in statsmodel
 
 		# dependent variable: 2(x,y) x #samples, there are NaNs
 		self.gaze2Data = np.array(bodyData[gaze2Key])
@@ -99,6 +91,34 @@ class Data:
 		self.allIVData = self.allIVData[finiteMask]
 		print("Shape of IV matrix: ", self.allIVData.shape)
 
+	def get_var_names(self):
+		'''construct variable names'''
+		variableInfo = "x1-75: joint x,y,z positions (25 joints)\n\
+			x76-150: joint x,y,z velocities\n\
+			x151-153: com x,y,z positions\n\
+			x154-156: com x,y,z velocities\n\
+			x157: gait percentage\n\
+			x158-172: foothold\n\
+			x173: height\n\
+			x174: leg length"
+		coords = 'xyz'
+		self.varNames = ['constant']
+		for name in self.jointNames:
+			for c in coords:
+				self.varNames.append(name + '.' + c)
+		for name in self.jointNames:
+			for c in coords:
+				self.varNames.append(name + '.vel' + c)
+		for c in coords:
+			self.varNames.append('com.' + c)
+		for c in coords:
+			self.varNames.append('com.vel' + c)
+		self.varNames.append('gaitPerc')
+		for i in range(5):
+			for c in coords:
+				self.varNames.append('foothold' + str(i+1) + '.' + c)
+		self.varNames.append('height')
+		self.varNames.append('leglength')
 
 	def regress_sklearn(self, method):
 		#self.allIndVars= StandardScaler().fit_transform(self.allIndVars)
@@ -134,21 +154,22 @@ class Data:
 		Y = self.gaze1Data[:,0]
 		model = sm.OLS(Y,X)
 		results = model.fit()
-		print(results.summary())
+		print(results.summary(xname=self.varNames))
 		print('*' * 120)
 
 		print("Regression result for 2nd dimension")
 		Y = self.gaze1Data[:,1]
 		model = sm.OLS(Y,X)
 		results = model.fit()
-		print(results.summary())
+		print(results.summary(xname=self.varNames))
 		print('*' * 120)
 
 		print("Regression result for 3rd dimension")
 		Y = self.gaze1Data[:,2]
 		model = sm.OLS(Y,X)
 		results = model.fit()
-		print(results.summary())
+		print(results.summary(xname=self.varNames))
 
 data = Data()
+data.get_var_names()
 data.regress_statsmodel()

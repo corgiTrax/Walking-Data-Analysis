@@ -22,6 +22,7 @@ Analyze outdoor walking data
 # Gaze prediction task2: body-joint model
 - [x] Body joint prediction: regression model in sklearn
 - [x] Regression model interpretation: regression model in statsmodel
+- [x] Variable names
 - [ ] Statsmodel regression with multi-dimensional output
 - [ ] MLP model
 
