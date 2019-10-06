@@ -14,27 +14,30 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.utils import class_weight
 import utils as U
 
-# gaze and non gaze file names
+#TODO: gaze and non gaze file names
 dirc = "data/32/color-allFixFrames/"
 gazeFiles = ["1_fix_patch_stack.mat", "2_fix_patch_stack.mat", "3_fix_patch_stack.mat"]
 nonGazeFiles =  ["1_non_fix_patch_stack.mat", "2_non_fix_patch_stack.mat", "3_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 gazeMatField, nonGazeMatField = "patchStack","patchStack_non"
 
+# Optical flow file names
 dircOF = "data/32/flow-allFixFrames/"
 gazeFilesOF = ["1_mag_fix_patch_stack.mat", "2_mag_fix_patch_stack.mat", "3_mag_fix_patch_stack.mat"]
 nonGazeFilesOF =  ["1_mag_non_fix_patch_stack.mat", "2_mag_non_fix_patch_stack.mat", "3_mag_non_fix_patch_stack.mat"]
 # gaze and non gaze field names in mat files
 gazeMatFieldOF, nonGazeMatFieldOF = "magStack","magStack_non"
 
-# note cannot shuffle data in this dataset before splitting
+# Important: note cannot shuffle data in this dataset before splitting
 trainRatio = 0.85 # 3611 gaze; 21474 nonGaze
 imgRow, imgCol = 32, 32
 inputShape = (imgRow, imgCol, 3)
 inputShapeOF = (imgRow, imgCol, 1)
+#TODO: where to store results
 modelDir = 'Experiments/' + str(imgRow) + '/cnn-img+of'
 dropout = 0.5
 epoch = 50
+# Data augmentation or not
 dataAug = False
 
 class Data:

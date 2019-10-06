@@ -1,3 +1,4 @@
+''' Linear regression model that predicts gaze from body joints'''
 import sys
 import scipy.io as sio
 import numpy as np
@@ -8,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn import linear_model
 import statsmodels.api as sm
 
+# input files
 dirc = 'data/1condition/'
 
 gazeFile = dirc + 'gaze.mat'
@@ -27,8 +29,6 @@ footholdKey = 'feetLocs'
 heightKey, legKey = 'subjHeight', 'legLength'
 # only use first 25 joints, since the last severals are heads and unknowns
 numJoint = 25
-
-
 
 def calc_adj_r2(r2, n, k):
 	# r2: r2 returned by regressor; n: sample size; k: # of features
@@ -169,7 +169,78 @@ class Data:
 		model = sm.OLS(Y,X)
 		results = model.fit()
 		print(results.summary(xname=self.varNames))
+        
+        def train_fully_connected_model(self):
+                # TODO: train a fully connected network to do regression
+                import keras as K
+                import keras.layers as L
+                from keras.models import Model
+                from keras.utils import to_categorical
+                from keras.models import Sequential
+                from keras.layers import Dense, Conv2D, Flatten
+                from keras.preprocessing.image import ImageDataGenerator
+                from sklearn.utils import class_weight
+                import utils as U
+               
+                #X: self.allIVData
+                #Y: self.gaze1Data // self.gaze2Data
+
+                (numGaze, dim) = self.allIVData.shape 
+                print(numGaze, dim)
+                # Unlike regression model, deep net needs to split data first
+                trainRatio = 0.85 
+		# split data 
+		numGazeTrain = int(numGaze * trainRatio)
+		numGazeTest = numGaze - numGazeTrain
+
+		self.trainData = self.allIVData[0:numGazeTrain] 
+		self.testData = self.allIVData[numGazeTrain:]
+
+                self.trainLabel = self.gaze1Data[0:numGazeTrain]
+                self.testLabel = self.gaze1Data[numGazeTrain:]
+                
+                inputShape = (dim,)
+                # TODO: where to store results
+                modelDir = 'Experiments/' + '/body-fc'
+                dropout = 0.0
+                epoch = 20
+
+		U.save_GPU_mem_keras()
+		expr = U.ExprCreaterAndResumer(modelDir, postfix="dr%s_jointsOnly" % (str(dropout)))
+
+		inputs = L.Input(shape=inputShape)
+		x = inputs # inputs is used by the line "Model(inputs, ... )" below
+                
+                # TODO: input data need standadrization; I use batch norm trick here; unknown effects comparing to standard way to do this
+                x = L.BatchNormalization()(x)
+		x = L.Dense(1024, activation='relu')(x)
+		x = L.Dropout(dropout)(x)
+                x = L.BatchNormalization()(x)
+		output=L.Dense(3, activation='linear')(x) #TODO: if label shape changes, this '3' should also change
+		model=Model(inputs=inputs, outputs=output)
+
+		opt = K.optimizers.Adadelta(lr=1.0, rho=0.95, epsilon=1e-08, decay=0.0)
+		#opt = K.optimizers.Adam(lr=0.1, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+		model.compile(optimizer=opt, loss="mean_squared_error", metrics=['mae','mse'])
+
+		print(model.summary())
+		# snapshot code before training the model
+		expr.dump_src_code_and_model_def(sys.argv[0], model)
+
+		model.fit(self.trainData, self.trainLabel, validation_data=(self.testData, self.testLabel),
+			shuffle=True, batch_size=100, epochs=epoch, verbose=2,
+			callbacks=[K.callbacks.TensorBoard(log_dir=expr.dir),
+			K.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr = 0.00001),
+			U.PrintLrCallback()])
+
+		expr.save_weight_and_training_config_state(model)
+
+		score = model.evaluate(self.testData, self.testLabel, batch_size=100, verbose=0)
+		expr.printdebug("eval score:" + str(score))
+
+           
 
 data = Data()
 data.get_var_names()
-data.regress_statsmodel()
+#data.regress_statsmodel()
+data.train_fully_connected_model()

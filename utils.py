@@ -1,3 +1,4 @@
+'''This file defines utility functions for running experiments'''
 import tensorflow as tf, numpy as np, keras as K
 import shutil, os, time, re, sys
 
@@ -22,6 +23,7 @@ class Colors:
 
 
 class ExprCreaterAndResumer:
+    '''This class, when called, snapshot all python files in the current folder, store them with all experiment outputs'''
     def __init__(self, rootdir, postfix=None):
         if not os.path.exists(rootdir):
             os.makedirs(rootdir)

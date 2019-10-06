@@ -171,7 +171,5 @@ class Data:
 	def test(self):
 		pass
 
-
-
 data = Data(gazeFiles, nonGazeFiles)
 data.train()

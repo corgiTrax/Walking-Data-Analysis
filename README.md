@@ -1,6 +1,13 @@
 # Walking-Data-Analysis
 Analyze outdoor walking data
 
+Software prerequisites:
+- Keras
+- Tensorflow
+- numpy, scipy
+- h5pyi
+- sklearn, statsmodels
+
 - [x] Setup experiment recording scripts
 - [x] Condor scripts
 
@@ -26,7 +33,14 @@ Analyze outdoor walking data
 - [ ] Multicolinearity issue
 - [ ] Time series issue
 - [ ] Statsmodel regression with multi-dimensional output
-- [ ] MLP model
+- [x] MLP model
 - [ ] Sequence model
 
 # Gaze prediction task3: joint image-body model
+- [ ] Joint network
+- How to do this:
+  - from body-model-1condition.py one can see how to read in body joints from file, and how to do regression using a fully connected network
+  - from cnn-img3ch+opf.py one can see how to build a convolutional network with multiple input sources and fuse them
+  - from these two above should be able to build a joint network that takes in both image and joints, and predict gaze
+
+
